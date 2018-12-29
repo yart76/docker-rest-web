@@ -1,0 +1,5 @@
+---
+# Pull spin-docker example images from docker index
+
+- name: Build function image
+  command: docker build -t python-ping .

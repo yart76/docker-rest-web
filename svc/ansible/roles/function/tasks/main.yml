@@ -1,0 +1,13 @@
+---
+
+# Synchronize source code when not deploying to vagrant
+- name: Sync source code
+  when: not vagrant_box
+  synchronize: src={{ user_src_path }} dest=/opt/www delete=yes
+
+# Start applying roles
+
+- name: Update and upgrade apt packages
+  apt: upgrade=yes update_cache=yes cache_valid_time=3600
+
+- include: build_images.yml
