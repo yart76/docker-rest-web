@@ -1,0 +1,20 @@
+---
+# Apply required configuration and docker images for starting function functionality
+
+- name: Install dependencies
+  apt: name="{{ item }}" state=present
+  with_items:
+    - python-pip
+
+- name: Install docker
+  pip: name="{{ item }}" state=present
+  with_items:
+    - docker
+    - docker-compose
+
+- name: Pull python-ping image
+  docker_image: name=jartamon/python-ping pull=yes tag=latest
+
+- name: Start python-ping container
+  docker_container: name=ping image=jartamon/python-ping ports="5001:5001" state=started
+

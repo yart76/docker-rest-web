@@ -1,0 +1,27 @@
+version: '2'
+services:
+  web:
+    image: docker-rest-web
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    command: /usr/bin/gunicorn --bind 0.0.0.0:8000 docker-rest-web:app
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./:/usr/src/app"
+    ports:
+      - 5002:5002
+      - 8000:8000
+    environment:
+      - APP_NAME=docker-rest-web
+      - FLASK_DEBUG=1
+      - PYTHONUNBUFFERED=0
+      - L_SERVER=192.168.33.80,192.168.33.60
+      - DEF_PROTOCOL=tcp
+      - DOCKER_PORT=2375
+      - DEF_IMAGE_NAME=python-ping
+      - DEF_IMAGE_VERSION:latest
+      - DEF_CONTAINER_NAME:ping
+      - DEF_CONTAINER_PORT=5001
+      - DEF_PATH=ping
+    restart: always

@@ -2,8 +2,7 @@ FROM alpine:3.7
 
 RUN apk add -Uuv --no-cache python3 \
     && apk upgrade -v --available --no-cache \
-    && apk add ca-certificates busybox-extras && pip3 install --no-cache-dir --upgrade pip setuptools wheel
-    && pip3 install requests certifi
+    && apk add ca-certificates busybox-extras && pip3 install --no-cache-dir --upgrade pip
 
 
 RUN mkdir -p /usr/src/app
@@ -19,5 +18,5 @@ RUN chmod u+x entrypoint.sh
 #CMD ["./entrypoint.sh"]
 
 ENTRYPOINT ["python3"]
-CMD ["flask_rest.py"]
+CMD ["-u", "docker-rest-web.py"]
 

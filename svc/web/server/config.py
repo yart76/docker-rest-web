@@ -3,7 +3,7 @@ import os
 
 class BaseConfig(object):
     """Base configuration."""
-    L_SERVER = os.getenv("L_SERVER", ("192.168.33.60",))
+    L_SERVER = os.getenv("L_SERVER", "192.168.33.80,192.168.33.60")
     DEF_PROTOCOL = os.getenv("DEF_PROTOCOL", "tcp")
     DOCKER_PORT = os.getenv("DOCKER_PORT", 2375)
     DEF_IMAGE_NAME = os.getenv("DEF_IMAGE_NAME", "python-ping")

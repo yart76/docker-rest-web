@@ -1,5 +1,5 @@
-flask
-flask-restful
-requests
-docker
-gunicorn
+flask==1.0.2
+flask-restful==0.3.7
+requests==2.21.0
+docker==3.6.0
+gunicorn==19.9.0

@@ -1,0 +1,18 @@
+---
+# Configure and deploy FaaS solution to remote servers
+
+- name: Configure controller
+  hosts: controller
+  become: yes
+  roles:
+    - controller_role
+  tags:
+    - controller
+
+- name: Configure functions
+  hosts: functions
+  become: yes
+  roles:
+    - function_role
+  tags:
+    - functions

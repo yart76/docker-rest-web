@@ -1,0 +1,18 @@
+---
+
+# Start applying roles
+
+- name: Update and upgrade apt packages
+  apt: upgrade=yes update_cache=yes cache_valid_time=3600
+
+# We need to enable the remote API for dockerd, therefore we need to change the way we start docker
+- name: Create docker.service.d folder
+  file: path=/etc/systemd/system/docker.service.d/ state=directory
+
+- name: Write docker startup ovveride script
+  template: src=./startup_options.conf.j2 dest=/etc/systemd/system/docker.service.d/startup_options.conf
+  notify:
+      - Reload systemd
+      - Restart docker
+
+- include: functions_ping.yml
