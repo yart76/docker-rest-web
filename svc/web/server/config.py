@@ -11,7 +11,10 @@ class BaseConfig(object):
     DEF_REP_NAME = os.getenv("DEF_REP_NAME", "jartamon")
     DEF_IMAGE_VERSION = os.getenv("DEF_IMAGE_VERSION", "latest")
     DEF_CONTAINER_NAME = os.getenv("DEF_CONTAINER_NAME", "ping")
-    DEF_CONTAINER_PORT = os.getenv("DEF_CONTAINER_PORT", "5001")
+    DEF_CONTAINER_PORT = os.getenv("DEF_CONTAINER_PORT", 5001)
+
+    # Default number of replicas that can be run on each node defined in L_SERVER variable
+    DEF_REPLICA_NUMBER = os.getenv("DEF_REPLICA_NUMBER", 2)
     DEF_PATH = os.getenv("DEF_PATH", "ping")
     IMAGE_NAME = "{}/{}:{}".format(DEF_REP_NAME, DEF_IMAGE_NAME, DEF_IMAGE_VERSION)
     FULL_IMAGE_NAME = "{}/{}".format(DEF_REG_NAME, IMAGE_NAME)
