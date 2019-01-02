@@ -1,6 +1,0 @@
----
-# Handlers
-- name: Restart gunicorn
-  service: name=gunicorn
-           state=restarted
-
