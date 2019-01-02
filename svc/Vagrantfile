@@ -1,72 +1,55 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+boxes = [
+  {
+    :id => "1",
+    :name => "web01_v1",
+    :box => "bento/ubuntu-16.04",
+    :ip => '192.168.33.50',
+    :cpus => "1",
+    :memory => "512"
+  },
+  {
+    :id => "2",
+    :name => "web02_v1",
+    :box => "bento/ubuntu-16.04",
+    :ip => '192.168.33.60',
+    :cpus => "20",
+    :memory => "512"
+  },
+  {
+    :id => "3",
+    :name => "web03_v1",
+    :box => "bento/ubuntu-16.04",
+    :ip => '192.168.33.70',
+    :cpus => "1",
+    :memory => "512"
+  },
+]
+
 Vagrant.configure("2") do |config|
+  boxes.each do |box|
+    config.vm.define box[:name] do |vmn|
+      vmn.vm.box = box[:box]
+      vmn.vm.provider "virtualbox" do |vb|
+        vb.memory = box[:memory]
+        vb.cpus = box[:cpus]
+      end
 
- config.vm.define "web01_v1" do |web01_v1|
-  web01_v1.vm.box = "bento/ubuntu-16.04"
- 
-  web01_v1.vm.provider "virtualbox" do |vb|
-   vb.memory = "512"
-   vb.cpus = 1
+      #vmn.vm.network "forwarded_port", guest: 8080, host: 8080 
+      vmn.vm.network "private_network", ip: box[:ip]
+      #vmn.vm.synced_folder "./data", "/vagrant_data"
+      vmn.vm.provision "shell", inline: <<-SHELL
+        set -e
+        apt-get update
+        apt-get install curl
+        echo "Install Docker"
+        curl -fsSL get.docker.com -o get-docker.sh
+        sudo sh get-docker.sh
+        sudo usermod -aG docker vagrant
+      SHELL
+    end
   end
-
-  web01_v1.vm.network "forwarded_port", guest: 8080, host: 8080 
-  web01_v1.vm.network "private_network", ip: "192.168.33.50"
-  #web01_v1.vm.synced_folder "./data", "/vagrant_data"
-  web01_v1.vm.provision "shell", inline: <<-SHELL
-   set -e
-   apt-get update
-   apt-get install curl
-   echo "Install Docker"
-   curl -fsSL get.docker.com -o get-docker.sh
-   sudo sh get-docker.sh
-   sudo usermod -aG docker vagrant
-   sudo curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
-   sudo chmod +x /usr/local/bin/docker-compose
-  SHELL
- end
-
-
- config.vm.define "web02_v1" do |web02_v1|
-  web02_v1.vm.box = "bento/ubuntu-16.04"
- 
-  web02_v1.vm.provider "virtualbox" do |vb|
-   vb.memory = "512"
-   vb.cpus = 1
-  end
-
-  web02_v1.vm.network "private_network", ip: "192.168.33.60"
-  #web02_v1.vm.synced_folder "./data", "/vagrant_data"
-  web02_v1.vm.provision "shell", inline: <<-SHELL
-   apt-get update
-   apt-get install curl
-   echo "Install Docker"
-   curl -fsSL get.docker.com -o get-docker.sh
-   sudo sh get-docker.sh
-   sudo usermod -aG docker vagrant
-  SHELL
- end 
-
-  config.vm.define "web03_v1" do |web03_v1|
-  web03_v1.vm.box = "bento/ubuntu-16.04"
- 
-  web03_v1.vm.provider "virtualbox" do |vb|
-   vb.memory = "512"
-   vb.cpus = 1
-  end
-
-  web03_v1.vm.network "private_network", ip: "192.168.33.70"
-  #web03_v1.vm.synced_folder "./data", "/vagrant_data"
-  web03_v1.vm.provision "shell", inline: <<-SHELL
-   apt-get update
-   apt-get install curl
-   echo "Install Docker"
-   curl -fsSL get.docker.com -o get-docker.sh
-   sudo sh get-docker.sh
-   sudo usermod -aG docker vagrant
-  SHELL
- end 
-
 end
 

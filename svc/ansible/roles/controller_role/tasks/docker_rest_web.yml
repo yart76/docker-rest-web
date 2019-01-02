@@ -1,11 +1,6 @@
 ---
 # Install docker_rest_web
 
-# Synchronize source code when not deploying to vagrant
-# - name: Sync source code
-#  when: not vagrant_box
-#  synchronize: src={{ user_src_path }} dest=/opt/www delete=yes
-
 - name: Install dependencies
   apt: name="{{ item }}" state=present
   with_items:

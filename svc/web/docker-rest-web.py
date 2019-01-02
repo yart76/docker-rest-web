@@ -41,30 +41,36 @@ def verify_container_running(client, server):
 		if app.config.get("DEF_CONTAINER_NAME") == c.name:
 			print("{} container is running".format(app.config.get("DEF_CONTAINER_NAME")))
 			return c
-		else:
-			print("{} container is not running".format(app.config.get("DEF_CONTAINER_NAME")))
+	print("{} container is not running".format(app.config.get("DEF_CONTAINER_NAME")))
 	return start_container(client, server)
 
-
-def start_container(client, server):
+def verify_image_exists(client, server):
 	for i in client.images.list():
 		print(i)
 		for t in i.tags:
 			print(t)
 			if app.config.get("DEF_IMAGE_NAME") in t:
 				app.logger.info(("{} image exists on the {} node").format(app.config.get("DEF_IMAGE_NAME"), server))
-				ports_formatted = "'{}/{}':{}".format(app.config.get("DEF_CONTAINER_PORT"), 
-					app.config.get("DEF_PROTOCOL"), app.config.get("DEF_CONTAINER_PORT"))
-				print(ports_formatted)
-				c = client.containers.run(app.config.get("DEF_IMAGE_NAME"), name=app.config.get("DEF_CONTAINER_NAME"), detach=True,
-					ports={'5001/tcp':5001})
-				sleep(2)
-				return c
+				return i
 	
-	print(("{} image is not yet build on the {} node").format(app.config.get("DEF_IMAGE_NAME"), server))
-	return None
+	app.logger.info(("{} image is not yet build or pulled on the {} node").format(app.config.get("DEF_IMAGE_NAME"), server))
+	app.logger.info("Pulling {} image".format(app.config.get("FULL_IMAGE_NAME")))
+	i = client.images.pull(app.config.get("FULL_IMAGE_NAME"))
+	return i
 
+def start_container(client, server):
+	i = verify_image_exists(client, server)
+	if i is None: return None
 
+	ports_formatted = "'{}/{}':{}".format(app.config.get("DEF_CONTAINER_PORT"), 
+		app.config.get("DEF_PROTOCOL"), app.config.get("DEF_CONTAINER_PORT"))
+	print(ports_formatted)
+	app.logger.info("Starting container from {} image".format(app.config.get("FULL_IMAGE_NAME")))
+	c = client.containers.run(app.config.get("FULL_IMAGE_NAME"), name=app.config.get("DEF_CONTAINER_NAME"), detach=True,
+		ports={'5001/tcp':5001})
+	sleep(2)
+	return c
+	
 @app.route('/')
 def main() -> str:
     return 'This is reply from main page'
@@ -92,7 +98,10 @@ def ping() -> str:
 			#result = convert(r.json())
 			print(r.headers)
 			ret = r.text
+			app.logger.info("Response is received")
+			app.logger.info("Stopping container")
 			c.stop()
+			app.logger.info("Removing container")
 			c.remove()
 		client.close()
 	except docker.errors.DockerException as e:

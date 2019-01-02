@@ -13,8 +13,8 @@
     - docker-compose
 
 - name: Pull python-ping image
-  docker_image: name=jartamon/python-ping pull=yes tag=latest
+  docker_image: name=jartamon/python-ping repository=docker.io pull=yes tag=latest
 
 - name: Start python-ping container
-  docker_container: name=ping image=jartamon/python-ping ports="5001:5001" state=started
+  docker_container: name=ping image=jartamon/python-ping ports="5001:5001" restart_policy="on-failure" restart_retries="3" state=started
 

@@ -1,7 +1,7 @@
 version: '2'
 services:
   web:
-    image: jartamon/docker-rest-web:latest
+    image: docker.io/jartamon/docker-rest-web:latest
     command: /usr/bin/gunicorn --bind 0.0.0.0:8000 docker-rest-web:app
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
@@ -11,7 +11,7 @@ services:
       - APP_NAME=docker-rest-web
       - FLASK_DEBUG=1
       - PYTHONUNBUFFERED=0
-      - L_SERVER=192.168.33.80,192.168.33.60
+      - L_SERVER=192.168.33.60,192.168.33.70
       - DEF_PROTOCOL=tcp
       - DOCKER_PORT=2375
       - DEF_IMAGE_NAME=python-ping
