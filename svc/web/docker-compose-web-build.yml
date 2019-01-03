@@ -19,9 +19,15 @@ services:
       - L_SERVER=192.168.33.60,192.168.33.70
       - DEF_PROTOCOL=tcp
       - DOCKER_PORT=2375
+      - DEF_REG_NAME=docker.io
+      - DEF_REP_NAME=jartamon
       - DEF_IMAGE_NAME=python-ping
       - DEF_IMAGE_VERSION:latest
       - DEF_CONTAINER_NAME:ping
       - DEF_CONTAINER_PORT=5001
       - DEF_PATH=ping
+      - DEF_REPLICA_NUMBER=2
+      - DEF_REDIS_URL=redis://web-redis:6379/0
     restart: always
+  web-redis:
+    image: redis:5.0.3-alpine

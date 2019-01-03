@@ -3,3 +3,4 @@ flask-restful==0.3.7
 requests==2.21.0
 docker==3.6.0
 gunicorn==19.9.0
+redis==3.0.1
