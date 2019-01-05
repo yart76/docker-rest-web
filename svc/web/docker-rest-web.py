@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+"""Handling REST request on the server, looks for available nodes, indentifies if clients has
+available ports, verifies if image is on remote server and if required downloads it,
+starts container, forward request, receive response and stop remote container. Response is returned back to client"""
+
 import socket
 from time import sleep
 from contextlib import closing
@@ -17,10 +21,9 @@ RUNNING = "running"
 STOPPED = "stopped"
 REMOVED = "removed"
 
-#Add default logging function and debug
-#Make proper error handling
 #Add commands and state of the container
 
+#Default connection to redis"""
 redis_c = redis.from_url(app.config.get("DEF_REDIS_URL"), charset="utf-8", decode_responses=True)
 
 """Dictionary for storing stats data"""
@@ -40,6 +43,8 @@ def _redis_put_container_data(cnt, server, port):
     redis_c.hmset("cntr_%s" % cnt.short_id, cntr)
     stats_map["n_cntr_provisioned"] = redis_c.incr('n_cntr_provisioned')
 
+
+"""Returns if port is available"""
 def _is_port_available(host, port):
     app.logger.info("Verifying if port {} is available on {} node".format(port, host))
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
@@ -50,6 +55,7 @@ def _is_port_available(host, port):
             app.logger.debug("Port {} is not used".format(port))
             return True
 
+"""Looks through available ports starting from 5001 + replica number defined in configuration"""
 def _get_port_number(host, init_port=5001):
     for number in range(int(app.config.get("DEF_REPLICA_NUMBER"))):
         n_port = init_port + number
@@ -58,7 +64,7 @@ def _get_port_number(host, init_port=5001):
             return n_port
     return None
 
-
+"""Looking through defined node list in configuration and returns the first one able connect to"""
 def _get_available_client():
     app.logger.info("Verify if host available and connection can be specified")
     client = None
@@ -66,9 +72,9 @@ def _get_available_client():
     srv = "127.0.0.1"
     for srv in app.config.get("L_SERVER").split(","):
         app.logger.info("Connecting to {} node".format(srv))
-        client = docker.DockerClient(base_url=('{}://{}:{}').format(
-            app.config.get("DEF_PROTOCOL"), srv, app.config.get("DOCKER_PORT")))
         try:
+            client = docker.DockerClient(base_url=('{}://{}:{}').format(
+                app.config.get("DEF_PROTOCOL"), srv, app.config.get("DOCKER_PORT")))
             app.logger.debug("Asking for ping")
             client.ping()
             app.logger.info("Connected to docker instance on {} node".format(srv))
@@ -82,15 +88,22 @@ def _get_available_client():
             return(client, srv, port)
     return (client, srv, port)
 
+"""Check if container is already running on the remote side"""
 def _verify_container_running(client):
     app.logger.info("Verify if container is running")
-    for cnt in client.containers.list():
-        if app.config.get("DEF_CONTAINER_NAME") == cnt.name:
-            app.logger.info("{} container is running".format(app.config.get("DEF_CONTAINER_NAME")))
-            return cnt
-    app.logger.info("{} container is not running".format(app.config.get("DEF_CONTAINER_NAME")))
-    return None
+    try:
+        for cnt in client.containers.list():
+            if app.config.get("DEF_CONTAINER_NAME") == cnt.name:
+                app.logger.info("{} container is running".format(app.config.get("DEF_CONTAINER_NAME")))
+                return cnt
+        app.logger.info("{} container is not running".format(app.config.get("DEF_CONTAINER_NAME")))
+        return None
+    except docker.errors.DockerException as e:
+        app.logger.error(str(e))
+        abort(500, message=str(e))
 
+
+"""Verify if image is available on function node and if it's not then pulls it from repository"""
 def _verify_image_exists(client, server):
     for i in client.images.list():
         app.logger.info(i)
@@ -103,9 +116,14 @@ def _verify_image_exists(client, server):
     app.logger.info(("{} image is not yet build or pulled on the {} node").format(
         app.config.get("DEF_IMAGE_NAME"), server))
     app.logger.info("Pulling {} image".format(app.config.get("FULL_IMAGE_NAME")))
-    image = client.images.pull(app.config.get("FULL_IMAGE_NAME"))
-    return image
+    try:
+        image = client.images.pull(app.config.get("FULL_IMAGE_NAME"))
+        return image
+    except docker.errors.DockerException as e:
+        app.logger.error(str(e))
+        abort(500, message=str(e))
 
+"""Start container and return reference to it"""
 def _get_container(client, server, port):
     i = _verify_image_exists(client, server)
     if i is None:
@@ -126,11 +144,12 @@ def _get_container(client, server, port):
     return cnt
 
 
-
+"""Simple route for verifying availability"""
 @app.route('/')
 def main() -> str:
     return 'This is reply from main page'
 
+"""Handles request to available and remotely runninng preconfigured node"""
 @app.route('/ping')
 def ping() -> str:
     stats_map["n_visits"] = redis_c.incr('n_visits')
@@ -174,19 +193,14 @@ def ping() -> str:
             client.close()
     return ret
 
-
+"""Return recorded statistics in json format"""
 @app.route('/stats')
 def stats():
     containers = [redis_c.hgetall(container) for container in redis_c.keys('cntr_*')]
-    #return [marshal(c, container_fields) for c in containers]
     ret = "Number of accessed /ping path is {}".format(redis_c.get("n_visits"))
     app.logger.info(ret)
-
-    #return [marshal(c, cntr_fields) for c in containers]
-    #return jsonify(c for c in containers)
     return jsonify({"stats_map": stats_map}, {"cntr": containers})
-    #for c in containers:
-    #	return c
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5002)
