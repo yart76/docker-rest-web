@@ -22,4 +22,11 @@
   get_url: url="https://raw.githubusercontent.com/yart76/docker-rest-web/master/svc/web/docker-compose-web-prod.yml" dest=/tmp/src/docker-compose.yml
 
 - name: Pull images
-  docker_service: project_src=/tmp/src pull=yes state=present
+#  docker_service: project_src=/tmp/src pull=yes state=present
+  command: docker-compose -f docker-compose.yml up -d
+  args:
+    chdir: /tmp/src
+  register: startoutput
+
+- name: Print debug
+  debug: var=startoutput verbosity=2

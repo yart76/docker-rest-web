@@ -15,7 +15,7 @@ boxes = [
     :name => "web02_v1",
     :box => "bento/ubuntu-16.04",
     :ip => '192.168.33.60',
-    :cpus => "20",
+    :cpus => "2",
     :memory => "512"
   },
   {
