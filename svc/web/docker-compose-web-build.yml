@@ -5,7 +5,6 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    command: /usr/bin/gunicorn --bind 0.0.0.0:8000 docker-rest-web:app
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "./:/usr/src/app"

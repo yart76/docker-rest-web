@@ -2,11 +2,10 @@ version: '2'
 services:
   web:
     image: docker.io/jartamon/docker-rest-web:latest
-    command: /usr/bin/gunicorn --bind 0.0.0.0:8000 docker-rest-web:app
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
     ports:
-      - 8000:8000
+      - 5002:5002
     environment:
       - APP_NAME=docker-rest-web
       - FLASK_DEBUG=1
